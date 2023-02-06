@@ -29,7 +29,9 @@ resource "aws_instance" "my_amazon" {
   instance_type               = "t2.micro"
   key_name                    = aws_key_pair.my_key.key_name
   vpc_security_group_ids      = [aws_security_group.my_sg.id]
+  iam_instance_profile        = "LabInstanceProfile"
   associate_public_ip_address = false
+  
 
   lifecycle {
     create_before_destroy = true
@@ -44,6 +46,7 @@ resource "aws_security_group" "my_sg" {
   name        = "allow_connection"
   description = "Allow SSH inbound traffic"
   vpc_id      = data.aws_vpc.default.id
+  
 
   ingress {
     description      = "SSH from everywhere"
