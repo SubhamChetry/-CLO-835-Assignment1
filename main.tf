@@ -20,10 +20,9 @@ data "aws_availability_zones" "available" {
 }
 
 resource "aws_key_pair" "my_key" {
-  key_name   = "docker.pub"
-  public_key = ("ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC7bcRsC+AGFiNdiRw42irjkZxgLvKoEhTS808F2Wu33xx4Qhx/x6AnLHfC2FZAfgr/17j62jCNez7xwGYP5fR7mWLRxY7+BICsfe5sdoyPpN7CdI5pzIBJ8lKFdHOZfecMJ0BJIW37eyT/fmTkNhgIPOZwbFwJbzE+vAyrGxOPSJCCCtYbh43yJlFjjAVOcyF0yICFz5gM7Fb9rg0MowEK7BpMstcYtvObcTT083wNlbfSRqUZIt90VYXiT5VnaHKsvq1Ise2GVv2sNgRbONW6GUCvIyKr6XvhL7PG4TDjQf+Ly6+7uqHqjKBP7cSOB8PbWiHM4e8F7IQVVEN2KJHb ec2-user@ip-172-31-78-56.ec2.internal")
+  key_name   = "docker_key"
+  public_key = file("docker_key.pub")
 }
-
 resource "aws_instance" "my_amazon" {
   ami                         = data.aws_ami.latest_amazon_linux.id
   instance_type               = "t2.micro"
@@ -31,8 +30,15 @@ resource "aws_instance" "my_amazon" {
   vpc_security_group_ids      = [aws_security_group.my_sg.id]
   iam_instance_profile        = "LabInstanceProfile"
   associate_public_ip_address = false
-  
-
+  user_data = <<EOF
+    #!/bin/bash
+     sudo yum update -y
+     sudo yum install docker -y
+     sudo usermod -aG docker ec2-user
+     sudo systemctl restart docker
+     
+  EOF
+     
   lifecycle {
     create_before_destroy = true
   }
@@ -56,7 +62,38 @@ resource "aws_security_group" "my_sg" {
     cidr_blocks      = ["0.0.0.0/0"]
     ipv6_cidr_blocks = ["::/0"]
   }
-
+  ingress {
+    description      = "SSH from everywhere"
+    from_port        = 8081
+    to_port          = 8081
+    protocol         = "tcp"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+  }
+  ingress {
+    description      = "SSH from everywhere"
+    from_port        = 8082
+    to_port          = 8082
+    protocol         = "tcp"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+  }
+  ingress {
+    description      = "SSH from everywhere"
+    from_port        = 8083
+    to_port          = 8083
+    protocol         = "tcp"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+  }
+  ingress {
+    description      = "SSH from everywhere"
+    from_port        = 80
+    to_port          = 80
+    protocol         = "tcp"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+  }
   egress {
     from_port        = 0
     to_port          = 0
@@ -82,10 +119,10 @@ resource "aws_eip" "static_eip" {
 
 }
 
-resource "aws_ecr_repository" "Amazon ECR1" {
-    name = "assignment 1"
+resource "aws_ecr_repository" "ECR_1" {
+    name = "app_repo"
 }
 
-resource "aws_ecr_repository" "Amazon ECR2" {
-    name = "assignment 2"
+resource "aws_ecr_repository" "ECR_2" {
+    name = "db_repo"
 }
