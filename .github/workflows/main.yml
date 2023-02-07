@@ -6,7 +6,7 @@ name: New Build Docker Image and Push to AWS ECR
 on:
   # Triggers the workflow on push or pull request events but only for the "dev" branch
   push:
-    branches: [ prod,dev ]
+    branches: [ prod ]
   
 
   # Allows you to run this workflow manually from the Actions tab
